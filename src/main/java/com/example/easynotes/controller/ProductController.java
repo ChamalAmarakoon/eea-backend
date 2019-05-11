@@ -29,8 +29,9 @@ public class ProductController {
 
     @GetMapping("/products/{id}")
     public Product getNoteById(@PathVariable(value = "id") Long productID) {
-        return productRepository.findById(productID)
-                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productID));
+//        return productRepository.findById(productID)
+    //            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productID));
+        return productRepository.findById(productID).get();
     }
 
     @PutMapping("/products/{id}")
