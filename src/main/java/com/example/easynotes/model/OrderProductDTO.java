@@ -1,23 +1,15 @@
 package com.example.easynotes.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class OrderProductDTO {
-    public OrderProducts orderProd;
+    @Setter @Getter private long id;
 
-    public Product product;
+    @Setter @Getter private int quantity;
 
-    public OrderProducts getOrderProd() {
-        return orderProd;
-    }
+    @Getter @Setter OrdersDTO ordersDTO;
 
-    public Product getProduct() {
-        return product;
-    }
+    @Getter @Setter ProductDTO productDTO;
 
-    public void setOrderProd(OrderProducts orderProd) {
-        this.orderProd = orderProd;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
 }

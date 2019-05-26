@@ -1,52 +1,26 @@
 package com.example.easynotes.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.persistence.*;
 
 @Entity
 public class OrderProducts {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
+    @Getter
     private long id;
 
-    private long orderId;
+    @Setter @Getter private int quantity;
 
-    private long productId;
+    @ManyToOne
+    @JoinColumn(name="order_id",referencedColumnName = "id")
+    @Getter @Setter Orders orders;
 
-    private int quantity;
+    @ManyToOne
+    @JoinColumn(name="product_id",referencedColumnName = "id")
+    @Getter @Setter Product product;
 
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(long orderId) {
-        this.orderId = orderId;
-    }
-
-    public long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(long productId) {
-        this.productId = productId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
 }

@@ -1,13 +1,14 @@
 package com.example.easynotes.controller;
 
 import com.example.easynotes.exception.ResourceNotFoundException;
-import com.example.easynotes.model.Product;
+import com.example.easynotes.model.*;
 import com.example.easynotes.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -18,8 +19,44 @@ public class ProductController {
     ProductRepository productRepository;
 
     @GetMapping("/products")
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+    public List<ProductDTO> getAllProducts(){
+        List<ProductDTO> productDTOList = new ArrayList<>();
+        for(Product product : productRepository.findAll()){
+            ProductDTO productDTO = productToDTO(product);
+            productDTOList.add(productDTO);
+        }
+        return productDTOList;
+    }
+
+    private ProductDTO productToDTO(Product product){
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setCompany(product.getCompany());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setId(product.getId());
+        productDTO.setImage(product.getImage());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setQuantity(product.getQuantity());
+        productDTO.setTitle(product.getTitle());
+
+//        List<OrderProducts> orderProductsList = product.getOrderProducts();
+//        //System.out.println(orderProductsList.size());
+//        List<OrderProductDTO> orderProductDTOList = new ArrayList<>();
+//        for(OrderProducts orderProducts : orderProductsList){
+//            OrderProductDTO orderProductDTO = new OrderProductDTO();
+//            orderProductDTO.setId(orderProducts.getId());
+//            orderProductDTO.setQuantity(orderProducts.getQuantity());
+//
+//            Orders orders = orderProducts.getOrders();
+//            OrdersDTO ordersDTO = new OrdersDTO();
+//            ordersDTO.setId(orders.getId());
+//            ordersDTO.setOrderStatus(orders.getOrderStatus());
+//            ordersDTO.setUserId(orders.getUserId());
+//
+//            orderProductDTO.setOrdersDTO(ordersDTO);
+//            orderProductDTOList.add(orderProductDTO);
+//        }
+//        productDTO.setOrderProductDTOList(orderProductDTOList);
+        return productDTO;
     }
 
     @PostMapping("/products")

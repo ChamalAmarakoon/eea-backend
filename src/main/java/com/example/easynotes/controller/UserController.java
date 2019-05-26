@@ -1,21 +1,22 @@
 package com.example.easynotes.controller;
 
 import com.example.easynotes.exception.ResourceNotFoundException;
-import com.example.easynotes.model.Product;
 import com.example.easynotes.model.User;
-import com.example.easynotes.repository.ProductRepository;
 import com.example.easynotes.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
+@EnableAutoConfiguration
+@Configuration
 @RestController
 @RequestMapping("/api")
 public class UserController {
-
     @Autowired
     UserRepository userRepository;
 
@@ -43,12 +44,12 @@ public class UserController {
 
         user.setEmail(userDetails.getEmail());
         user.setUsername(userDetails.getUsername());
-        user.setPassword(userDetails.getPassword());
+        user.setPassword(String.valueOf(userDetails.getPassword()));
 
         User updatedUser = userRepository.save(user);
         return updatedUser;
     }
-    
+
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long userID) {
@@ -59,6 +60,5 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
-
 
 }
