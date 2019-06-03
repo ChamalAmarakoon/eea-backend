@@ -1,11 +1,12 @@
 package com.example.easynotes.controller;
 
-import com.example.easynotes.exception.ResourceNotFoundException;
+import com.example.easynotes.dto.OrderProductDTO;
+import com.example.easynotes.dto.OrdersDTO;
+import com.example.easynotes.dto.ProductDTO;
 import com.example.easynotes.model.*;
 import com.example.easynotes.repository.*;
-import org.hibernate.criterion.Order;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,7 @@ public class CartController {
     public OrderProducts createCart(@Valid @RequestBody OrderProducts newOrderProd){
         long userId = 2;
         Orders order = orderRepository.findByUserIdAndOrderStatus(2, "cart");
+
         if(order==null){
             order = new Orders();
             order.setOrderStatus("cart");
@@ -43,9 +45,9 @@ public class CartController {
 
         Product product = prodRepository.findById(newOrderProd.getProduct().getId()).get();
         List<OrderProducts> orderProdList = orderProductsRepository.findByOrdersAndProduct(order,product);
-        OrderProducts orderProd=null;
-        if(orderProd==null) {
 
+        OrderProducts orderProd=null;
+        if(orderProdList.size()==0) {
             newOrderProd.setOrders(orderRepository.findById(order.getId()).get());
             orderProd = newOrderProd;
         }else{
@@ -58,21 +60,24 @@ public class CartController {
 
     @GetMapping("/cart")
     public List<OrderProductDTO> getCart() {
-//        return cartRepository.findById(cartID)
-//                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", cartID));
         long userId = 2;
         Orders order = orderRepository.findByUserIdAndOrderStatus(2, "cart");
+        //OrdersDTO orderDTO = ordersToDTO(order);
         List<OrderProductDTO> orderProdDTOList = new ArrayList<>();
         if(order!=null){
-
             List<OrderProducts> orderProdList = orderProductsRepository.findByOrders(order);
             for(OrderProducts orderProd : orderProdList){
-                Optional<Product> product = prodRepository.findById(orderProd.getProduct().getId());
-                if(product.isPresent()){
-                    OrderProductDTO orderProdDTO = new OrderProductDTO();
-//                    orderProdDTO.setOrderProd(orderProd);
-//                    orderProdDTO.setProduct(product.get());
-                    orderProdDTOList.add(orderProdDTO);
+                Product product = orderProd.getProduct();
+                if(product!=null){
+                    ProductDTO productDTO = productToDTO(product);
+                    OrderProductDTO orderProductDTO = orderProductToDTO(orderProd);
+
+                    OrdersDTO ordersDTO = new OrdersDTO();
+                    ordersDTO.setId(order.getId());
+
+                    orderProductDTO.setProductDTO(productDTO);
+                    orderProductDTO.setOrdersDTO(ordersDTO);
+                    orderProdDTOList.add(orderProductDTO);
                 }
             }
         }
@@ -80,31 +85,30 @@ public class CartController {
     }
 
     @PutMapping("/cart/{id}")
-    public OrderProducts updateCart(@PathVariable(value = "id")Long cartID,
-                                 @Valid @RequestBody OrderProducts newOrderProduct){
+    public ResponseEntity<Object> updateCart(@PathVariable(value = "id")Long cartID,
+                                             @Valid @RequestBody OrderProducts newOrderProduct){
         Product product = prodRepository.findById(newOrderProduct.getProduct().getId()).get();
         Orders orders = orderRepository.findById(cartID).get();
          List<OrderProducts> orderProds = orderProductsRepository.
                  findByOrdersAndProduct(orders,product);
-//                .orElseThrow(()-> new ResourceNotFoundException("Cart", "id", cartID));
-        System.out.println(cartID);
-        //System.out.println(newOrderProduct.getProductId());
-        if(orderProds.size()>0){
+
+       // System.out.println("cart id "+cartID);
+       // System.err.println(orderProds.size());
+        if(orderProds.size()>0 ){
             OrderProducts orderProduct = orderProds.get(0);
-            if(newOrderProduct.getQuantity()>0) {
+            //System.err.println(product.getQuantity());
+            if(newOrderProduct.getQuantity()>0 && newOrderProduct.getQuantity()<=product.getQuantity()) {
                 orderProduct.setQuantity(newOrderProduct.getQuantity());
-                System.out.println("Quantity : " + newOrderProduct.getQuantity());
+                //System.out.println("Quantity : " + newOrderProduct.getQuantity());
                 orderProductsRepository.save(orderProduct);
+                OrderProductDTO orderProductDTO = orderProductToDTO(orderProduct);
+                return new ResponseEntity<>(orderProductDTO, HttpStatus.OK);
             }
-            return orderProduct;
+           //return orderProduct;
+
         }
-        return null;
-//        cart.setProductID(cartDetails.getProductID());
-//        cart.setCartPrice(cartDetails.getCartPrice());
-//        cart.setCartQuantity(cartDetails.getCartQuantity());
-//
-//        Cart updatedCart = cartRepository.save(cart);
-//        return updatedCart;
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+//        return null;
     }
 
     @PutMapping("/cart/{id}/{status}")
@@ -116,27 +120,7 @@ public class CartController {
             orderRepository.save(order);
             return order;
         }
-//        List<OrderProducts> orderProds = orderProductsRepository.
-//                findByOrderIdAndProductId(cartID,newOrderProduct.getProductId());
-////                .orElseThrow(()-> new ResourceNotFoundException("Cart", "id", cartID));
-//        System.out.println(cartID);
-//        System.out.println(newOrderProduct.getProductId());
-//        if(orderProds.size()>0){
-//            OrderProducts orderProduct = orderProds.get(0);
-//            if(newOrderProduct.getQuantity()>0) {
-//                orderProduct.setQuantity(newOrderProduct.getQuantity());
-//                System.out.println("Quantity : " + newOrderProduct.getQuantity());
-//                orderProductsRepository.save(orderProduct);
-//            }
-//            return orderProduct;
-//        }
         return null;
-//        cart.setProductID(cartDetails.getProductID());
-//        cart.setCartPrice(cartDetails.getCartPrice());
-//        cart.setCartQuantity(cartDetails.getCartQuantity());
-//
-//        Cart updatedCart = cartRepository.save(cart);
-//        return updatedCart;
     }
 
     @DeleteMapping("/cart/{cartId}/{productId}")
@@ -156,8 +140,6 @@ public class CartController {
 
     @DeleteMapping("/cart/{id}")
     public boolean deleteCart(@PathVariable(value = "id") Long cartID) {
-//        Cart cart = cartRepository.findById(cartID)
-//                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", cartID));
         Optional<Orders> order = orderRepository.findById(cartID);
         if(order.isPresent()){
             List<OrderProducts> orderProds = orderProductsRepository.findByOrders(order.get());
@@ -168,10 +150,25 @@ public class CartController {
             return true;
         }
         return false;
-//        cartRepository.delete(cart);
-//
-//        return ResponseEntity.ok().build();
     }
 
+    private ProductDTO productToDTO(Product product){
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setCompany(product.getCompany());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setId(product.getId());
+        productDTO.setImage(product.getImage());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setQuantity(product.getQuantity());
+        productDTO.setTitle(product.getTitle());
+        return productDTO;
+    }
+
+    private OrderProductDTO orderProductToDTO(OrderProducts orderProduct){
+        OrderProductDTO orderProductDTO = new OrderProductDTO();
+        orderProductDTO.setId(orderProduct.getId());
+        orderProductDTO.setQuantity(orderProduct.getQuantity());
+        return orderProductDTO;
+    }
 
 }

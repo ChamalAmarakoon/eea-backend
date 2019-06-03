@@ -1,5 +1,6 @@
 package com.example.easynotes.controller;
 
+import com.example.easynotes.dto.ProductDTO;
 import com.example.easynotes.exception.ResourceNotFoundException;
 import com.example.easynotes.model.*;
 import com.example.easynotes.repository.ProductRepository;
@@ -37,25 +38,6 @@ public class ProductController {
         productDTO.setPrice(product.getPrice());
         productDTO.setQuantity(product.getQuantity());
         productDTO.setTitle(product.getTitle());
-
-//        List<OrderProducts> orderProductsList = product.getOrderProducts();
-//        //System.out.println(orderProductsList.size());
-//        List<OrderProductDTO> orderProductDTOList = new ArrayList<>();
-//        for(OrderProducts orderProducts : orderProductsList){
-//            OrderProductDTO orderProductDTO = new OrderProductDTO();
-//            orderProductDTO.setId(orderProducts.getId());
-//            orderProductDTO.setQuantity(orderProducts.getQuantity());
-//
-//            Orders orders = orderProducts.getOrders();
-//            OrdersDTO ordersDTO = new OrdersDTO();
-//            ordersDTO.setId(orders.getId());
-//            ordersDTO.setOrderStatus(orders.getOrderStatus());
-//            ordersDTO.setUserId(orders.getUserId());
-//
-//            orderProductDTO.setOrdersDTO(ordersDTO);
-//            orderProductDTOList.add(orderProductDTO);
-//        }
-//        productDTO.setOrderProductDTOList(orderProductDTOList);
         return productDTO;
     }
 
@@ -65,10 +47,11 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public Product getNoteById(@PathVariable(value = "id") Long productID) {
+    public ProductDTO getNoteById(@PathVariable(value = "id") Long productID) {
 //        return productRepository.findById(productID)
     //            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productID));
-        return productRepository.findById(productID).get();
+
+        return productToDTO(productRepository.findById(productID).get());
     }
 
     @PutMapping("/products/{id}")

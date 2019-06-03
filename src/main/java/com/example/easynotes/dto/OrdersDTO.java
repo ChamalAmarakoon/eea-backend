@@ -1,5 +1,6 @@
-package com.example.easynotes.model;
+package com.example.easynotes.dto;
 
+import com.example.easynotes.dto.OrderProductDTO;
 import lombok.Getter;
 import lombok.Setter;
 
