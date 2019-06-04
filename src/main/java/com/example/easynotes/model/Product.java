@@ -1,5 +1,6 @@
 package com.example.easynotes.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import net.bytebuddy.dynamic.loading.InjectionClassLoader;
@@ -39,6 +40,7 @@ public class Product implements Serializable {
 
     @Setter @Getter private String company;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "product",fetch = FetchType.EAGER)
     @Getter @Setter
     List<OrderProducts> orderProducts;

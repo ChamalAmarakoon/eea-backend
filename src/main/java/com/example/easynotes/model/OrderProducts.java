@@ -1,5 +1,6 @@
 package com.example.easynotes.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,10 +16,12 @@ public class OrderProducts {
 
     @Setter @Getter private int quantity;
 
+    //@JsonIgnore
     @ManyToOne
     @JoinColumn(name="order_id",referencedColumnName = "id")
     @Getter @Setter Orders orders;
 
+    //@JsonIgnore
     @ManyToOne
     @JoinColumn(name="product_id",referencedColumnName = "id")
     @Getter @Setter Product product;

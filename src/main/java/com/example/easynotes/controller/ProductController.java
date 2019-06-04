@@ -43,7 +43,9 @@ public class ProductController {
 
     @PostMapping("/products")
     public Product createProduct(@Valid @RequestBody Product product){
+
         return productRepository.save(product);
+       // return product;
     }
 
     @GetMapping("/products/{id}")
@@ -78,6 +80,4 @@ public class ProductController {
 
         return ResponseEntity.ok().build();
     }
-
-
 }

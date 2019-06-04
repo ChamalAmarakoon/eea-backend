@@ -1,5 +1,6 @@
 package com.example.easynotes.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class Orders {
 
     @Setter @Getter private long userId;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "orders",fetch = FetchType.EAGER)
     @Getter @Setter
     List<OrderProducts> orderProducts;
