@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface OrderProductsRepository extends JpaRepository<OrderProducts,Long> {
-    public OrderProducts findByProduct(Product product);
+    public List<OrderProducts> findByProduct(Product product);
 
     public List<OrderProducts> findByOrders(Orders orders);
 

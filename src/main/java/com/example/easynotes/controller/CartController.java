@@ -1,8 +1,5 @@
 package com.example.easynotes.controller;
 
-import com.example.easynotes.dto.OrderProductDTO;
-import com.example.easynotes.dto.OrdersDTO;
-import com.example.easynotes.dto.ProductDTO;
 import com.example.easynotes.model.*;
 import com.example.easynotes.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin("*")
 public class CartController {
 
     @Autowired
@@ -59,36 +57,37 @@ public class CartController {
     }
 
     @GetMapping("/cart")
-    public List<OrderProductDTO> getCart() {
+    public List<OrderProducts> getCart() {
         long userId = 2;
         Orders order = orderRepository.findByUserIdAndOrderStatus(2, "cart");
         //OrdersDTO orderDTO = ordersToDTO(order);
-        List<OrderProductDTO> orderProdDTOList = new ArrayList<>();
+        List<OrderProducts> orderProdDTOList = new ArrayList<>();
         if(order!=null){
-            List<OrderProducts> orderProdList = orderProductsRepository.findByOrders(order);
-            for(OrderProducts orderProd : orderProdList){
-                Product product = orderProd.getProduct();
-                if(product!=null){
-                    ProductDTO productDTO = productToDTO(product);
-                    OrderProductDTO orderProductDTO = orderProductToDTO(orderProd);
-
-                    OrdersDTO ordersDTO = new OrdersDTO();
-                    ordersDTO.setId(order.getId());
-
-                    orderProductDTO.setProductDTO(productDTO);
-                    orderProductDTO.setOrdersDTO(ordersDTO);
-                    orderProdDTOList.add(orderProductDTO);
-                }
-            }
+//            List<OrderProducts> orderProdList = orderProductsRepository.findByOrders(order);
+//            for(OrderProducts orderProd : orderProdList){
+//                Product product = orderProd.getProduct();
+//                if(product!=null){
+//                    ProductDTO productDTO = productToDTO(product);
+//                    OrderProductDTO orderProductDTO = orderProductToDTO(orderProd);
+//
+//                    OrdersDTO ordersDTO = new OrdersDTO();
+//                    ordersDTO.setId(order.getId());
+//
+//                    orderProductDTO.setProductDTO(productDTO);
+//                    orderProductDTO.setOrdersDTO(ordersDTO);
+//                    orderProdDTOList.add(orderProductDTO);
+//                }
+//            }
+            return order.getOrderProducts();
         }
-        return orderProdDTOList;
+        return null;
     }
 
-    @PutMapping("/cart/{id}")
-    public ResponseEntity<Object> updateCart(@PathVariable(value = "id")Long cartID,
+    @PutMapping("/cart")
+    public ResponseEntity<Object> updateCart(
                                              @Valid @RequestBody OrderProducts newOrderProduct){
         Product product = prodRepository.findById(newOrderProduct.getProduct().getId()).get();
-        Orders orders = orderRepository.findById(cartID).get();
+        Orders orders = orderRepository.findByOrderStatus("cart");
          List<OrderProducts> orderProds = orderProductsRepository.
                  findByOrdersAndProduct(orders,product);
 
@@ -100,9 +99,9 @@ public class CartController {
             if(newOrderProduct.getQuantity()>0 && newOrderProduct.getQuantity()<=product.getQuantity()) {
                 orderProduct.setQuantity(newOrderProduct.getQuantity());
                 //System.out.println("Quantity : " + newOrderProduct.getQuantity());
-                orderProductsRepository.save(orderProduct);
-                OrderProductDTO orderProductDTO = orderProductToDTO(orderProduct);
-                return new ResponseEntity<>(orderProductDTO, HttpStatus.OK);
+                orderProduct = orderProductsRepository.save(orderProduct);
+                //OrderProductDTO orderProductDTO = orderProductToDTO(orderProduct);
+                return new ResponseEntity<>(orderProduct, HttpStatus.OK);
             }
            //return orderProduct;
 
@@ -111,23 +110,28 @@ public class CartController {
 //        return null;
     }
 
-    @PutMapping("/cart/{id}/{status}")
-    public Orders updateCartStatus(@PathVariable(value = "id")Long cartID, @PathVariable(value = "status")String status){
-        Optional<Orders> orders = orderRepository.findById(cartID);
-        if(orders.isPresent()){
-            Orders order = orders.get();
+    @PutMapping("/cart/{status}")
+    public Orders updateCartStatus(@PathVariable(value = "status")String status){
+        Orders order = orderRepository.findByOrderStatus("cart");
+        if(order!=null){
             order.setOrderStatus(status);
             orderRepository.save(order);
+
+            List<OrderProducts> orderProds = order.getOrderProducts();
+            for(OrderProducts orderProd : orderProds){
+                Product prod = orderProd.getProduct();
+                prod.setQuantity(prod.getQuantity()-orderProd.getQuantity());
+                prodRepository.save(prod);
+            }
             return order;
         }
         return null;
     }
 
-    @DeleteMapping("/cart/{cartId}/{productId}")
-    public boolean deleteCartProduct(@PathVariable Long cartId
-    ,@PathVariable Long productId) {
+    @DeleteMapping("/cart/{productId}")
+    public boolean deleteCartProduct(@PathVariable Long productId) {
         Product product = prodRepository.findById(productId).get();
-        Orders order = orderRepository.findById(cartId).get();
+        Orders order = orderRepository.findByOrderStatus("cart");
         List<OrderProducts> orderProds = orderProductsRepository.
                 findByOrdersAndProduct(order,product);
         if(orderProds.size()>0){
@@ -138,37 +142,38 @@ public class CartController {
         return false;
     }
 
-    @DeleteMapping("/cart/{id}")
-    public boolean deleteCart(@PathVariable(value = "id") Long cartID) {
-        Optional<Orders> order = orderRepository.findById(cartID);
-        if(order.isPresent()){
-            List<OrderProducts> orderProds = orderProductsRepository.findByOrders(order.get());
+    @DeleteMapping("/deleteCart")
+    public boolean deleteCart() {
+        Orders order = orderRepository.findByOrderStatus("cart");
+        System.err.println(order);
+        if(order!=null){
+            List<OrderProducts> orderProds = orderProductsRepository.findByOrders(order);
             for(OrderProducts orderProd : orderProds){
                 orderProductsRepository.deleteById(orderProd.getId());
             }
-            orderRepository.deleteById(cartID);
+            orderRepository.deleteById(order.getId());
             return true;
         }
         return false;
     }
 
-    private ProductDTO productToDTO(Product product){
-        ProductDTO productDTO = new ProductDTO();
-        productDTO.setCompany(product.getCompany());
-        productDTO.setDescription(product.getDescription());
-        productDTO.setId(product.getId());
-        productDTO.setImage(product.getImage());
-        productDTO.setPrice(product.getPrice());
-        productDTO.setQuantity(product.getQuantity());
-        productDTO.setTitle(product.getTitle());
-        return productDTO;
-    }
-
-    private OrderProductDTO orderProductToDTO(OrderProducts orderProduct){
-        OrderProductDTO orderProductDTO = new OrderProductDTO();
-        orderProductDTO.setId(orderProduct.getId());
-        orderProductDTO.setQuantity(orderProduct.getQuantity());
-        return orderProductDTO;
-    }
+//    private ProductDTO productToDTO(Product product){
+//        ProductDTO productDTO = new ProductDTO();
+//        productDTO.setCompany(product.getCompany());
+//        productDTO.setDescription(product.getDescription());
+//        productDTO.setId(product.getId());
+//        productDTO.setImage(product.getImage());
+//        productDTO.setPrice(product.getPrice());
+//        productDTO.setQuantity(product.getQuantity());
+//        productDTO.setTitle(product.getTitle());
+//        return productDTO;
+//    }
+//
+//    private OrderProductDTO orderProductToDTO(OrderProducts orderProduct){
+//        OrderProductDTO orderProductDTO = new OrderProductDTO();
+//        orderProductDTO.setId(orderProduct.getId());
+//        orderProductDTO.setQuantity(orderProduct.getQuantity());
+//        return orderProductDTO;
+//    }
 
 }

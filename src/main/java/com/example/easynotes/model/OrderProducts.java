@@ -16,7 +16,7 @@ public class OrderProducts {
 
     @Setter @Getter private int quantity;
 
-    //@JsonIgnore
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="order_id",referencedColumnName = "id")
     @Getter @Setter Orders orders;

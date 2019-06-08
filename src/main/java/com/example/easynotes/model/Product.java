@@ -17,7 +17,7 @@ import java.util.List;
 
 
 @Entity
-@Table(name = "Products")
+@Table(name = "Product")
 @EntityListeners(AuditingEntityListener.class)
 
 
@@ -36,7 +36,7 @@ public class Product implements Serializable {
 
     @Setter @Getter private double price;
 
-    @Setter @Getter private String image;
+    @Setter @Getter private byte[] image;
 
     @Setter @Getter private String company;
 

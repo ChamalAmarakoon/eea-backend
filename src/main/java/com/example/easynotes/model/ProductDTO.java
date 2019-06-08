@@ -1,13 +1,14 @@
-package com.example.easynotes.dto;
+package com.example.easynotes.model;
 
-import com.example.easynotes.dto.OrderProductDTO;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.io.Serializable;
 
-public class ProductDTO {
-    @Setter @Getter private long id;
+public class ProductDTO implements Serializable {
+    @Setter
+    @Getter
+    private long id;
 
     @Setter @Getter private String description;
 
@@ -20,6 +21,4 @@ public class ProductDTO {
     @Setter @Getter private String image;
 
     @Setter @Getter private String company;
-
-    @Setter @Getter private List<OrderProductDTO> orderProductDTOList;
 }
